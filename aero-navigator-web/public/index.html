@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Aero-Navigator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+
+    <!-- Professional Email-Only Auth Modal -->
+    <div id="auth-modal" class="modal-overlay" style="display: none;">
+        <div class="auth-card" style="position: relative; max-width: 420px; text-align: center; border-radius: 24px; padding: 2.5rem 2rem; background: rgba(18, 24, 42, 0.92); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);">
+            <button type="button" class="chat-close-btn" style="position: absolute; top: 1rem; right: 1.2rem; background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;" onclick="hideAuthModal()">&times;</button>
+            <div style="font-size: 2.8rem; margin-bottom: 0.6rem; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.6));">✈️</div>
+            <h2 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; background: linear-gradient(135deg, #FFF, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Sign In to AeroNav AI</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.6rem; line-height: 1.4;">Enter your email address to log in. All your daily searches, AI chats, and flight history will be safely saved under your email.</p>
+            
+            <form id="auth-form" onsubmit="handleEmailSignIn(event)">
+                <div class="input-group" style="text-align: left; margin-bottom: 1.2rem;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">Email Address</label>
+                    <input type="email" id="auth-email-input" required placeholder="e.g. traveler@example.com" style="width: 100%; padding: 0.9rem 1.2rem; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 12px; font-size: 1rem; outline: none; transition: all 0.3s ease;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.9rem; font-size: 1rem; font-weight: 600; border-radius: 12px; background: linear-gradient(90deg, #38BDF8, #818CF8); border: none; cursor: pointer; color: #fff; transition: transform 0.2s ease;">🚀 Continue with Email</button>
+            </form>
+            
+            <div style="margin-top: 1.2rem; font-size: 0.78rem; color: var(--text-muted);">
+                <span>🔒 Passwordless Sign-In • Daily Data Persistence</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chatbot Floating Widget -->
+    <div class="chat-widget-container" id="chat-widget">
+        <button class="chat-toggle-btn" onclick="toggleChat()">✨ Ask AI</button>
+        <div class="chat-window" id="chat-window">
+            <div class="chat-header">
+                <h3>AeroNav AI Assistant</h3>
+                <button onclick="toggleChat()" class="chat-close-btn">&times;</button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-msg ai-msg">Hello! I am your AI Travel Assistant. Ask me anything about flights, weather, or travel advice.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Type your travel query..." onkeypress="handleChatEnter(event)">
+                <button onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">✈️</div>
+                <h2>Aero-Nav AI</h2>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">🏠 Dashboard</button>
+                <button class="nav-item" data-tab="flight-status" onclick="switchTab('flight-status')">🧭 Live Status</button>
+                <button class="nav-item" data-tab="price-predict" onclick="switchTab('price-predict')">📊 Price Predict</button>
+                <button class="nav-item" data-tab="optimize-route" onclick="switchTab('optimize-route')">🛠️ Optimize Route</button>
+                <button class="nav-item" data-tab="share-gps" onclick="switchTab('share-gps')">📡 Share GPS</button>
+                <button class="nav-item" data-tab="daily-activity" onclick="switchTab('daily-activity')">📅 Daily Activity</button>
+                <button class="nav-item" data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
+            </nav>
+            <div class="sidebar-footerUser">
+                <p id="user-display-email" style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.6rem; word-break: break-all;">Logged in as: ...</p>
+                <button class="btn btn-accent btn-sm" onclick="showAuthModal()" style="width: 100%; font-size: 0.82rem;">🔑 Switch Account / Sign In</button>
+            </div>
+        </aside>
+
+        <main class="content-viewport">
+            
+            <!-- Dashboard Hero Section -->
+            <section id="tab-dashboard" class="dashboard-section active">
+                <div class="hero-section">
+                    <div class="hero-content">
+                        <h1>The Future of <span>Flight Tracking</span></h1>
+                        <p>Experience real-time telemetry, AI-driven price forecasting, and intelligent route optimization powered by neural networks.</p>
+                        <div class="hero-stats">
+                            <div class="stat-box">
+                                <h2>Live</h2>
+                                <span>Global Coverage</span>
+                            </div>
+                            <div class="stat-box">
+                                <h2>99.9%</h2>
+                                <span>Prediction Accuracy</span>
+                            </div>
+                            <div class="stat-box">
+                                <h2>Real-time</h2>
+                                <span>Weather & Metrics</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="margin-top: 2rem; font-size: 1.2rem; padding: 1rem 2rem;" onclick="switchTab('flight-status')">Start Tracking Now</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-flight-status" class="dashboard-section">
+                <div class="section-header">
+                    <h1>Live Flight Status Tracking</h1>
+                    <p>Enter route to retrieve live aircraft metrics, real-time weather at destination, and AI Sentiment analysis.</p>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="flight-from" placeholder="From (e.g., Chennai)">
+                    <input type="text" id="flight-to" placeholder="To (e.g., London)">
+                    <input type="date" id="flight-date" class="date-picker">
+                    <button class="btn btn-primary" onclick="searchFlights()">Search Route</button>
+                </div>
+                
+                <div id="flight-results-container" class="results-grid" style="display: none;">
+                    <!-- Map will be injected here -->
+                </div>
+                
+                <!-- Weather and Sentiment AI Panel (Appears after search) -->
+                <div id="ai-insights-panel" class="results-grid" style="display: none; margin-top: 1.5rem;">
+                    <div class="card" id="weather-card">
+                        <h3>🌤️ Destination Weather Forecast</h3>
+                        <div class="weather-content" id="weather-content">
+                            Loading AI weather data...
+                        </div>
+                    </div>
+                    <div class="card" id="sentiment-card">
+                        <h3>🤖 AI Airline Sentiment Analysis</h3>
+                        <div class="sentiment-content" id="sentiment-content">
+                            Analyzing recent passenger reviews...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-price-predict" class="dashboard-section">
+                <div class="section-header">
+                    <h1>AI Flight Price Prediction</h1>
+                    <p>Advanced forecasting analytics utilizing multi-layered neural pricing trend data layers.</p>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="predict-from" placeholder="From (e.g., Chennai)">
+                    <input type="text" id="predict-to" placeholder="To (e.g., Sydney)">
+                    <input type="date" id="predict-date" class="date-picker">
+                    <button class="btn btn-primary" onclick="generatePriceForecast()">Run AI Forecasting</button>
+                </div>
+                <div id="forecast-analytics-view" class="results-grid" style="display: none;">
+                    <div class="card text-center" style="display: flex; flex-direction: column; justify-content: center;">
+                        <h2>Current Market Rate</h2>
+                        <h1 class="highlight-price" id="current-price-display">₹-- <span class="drop-percentage" id="price-trend-display">--%</span></h1>
+                        <p>Our AI Engine Recommends: <strong class="badge" id="ai-recommendation">--</strong></p>
+                    </div>
+                    <div class="card">
+                        <h3>7-Day Dynamic Price Trajectory Forecast</h3>
+                        <canvas id="priceForecastChart" width="400" height="200"></canvas>
+                        <p id="prediction-summary" style="margin-top:0.5rem;font-weight:600;color:var(--color-primary)"></p>
+                    </div>
+                    <div class="card full-width-card">
+                        <h3>Set Custom Route Price Alert</h3>
+                        <div class="alert-setup-row">
+                            <input type="number" id="alert-price" placeholder="Target Threshold Amount (e.g., 5000)">
+                            <button class="btn btn-primary" onclick="registerPriceAlert()">Register Alert Rule</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-optimize-route" class="dashboard-section">
+                <div class="section-header">
+                    <h1>Multi-Leg Route Layout Optimizer</h1>
+                    <p>Scans systemic databases to minimize structural layover times and balance operational costs.</p>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="opt-from" placeholder="From (e.g., Chennai)">
+                    <input type="text" id="opt-to" placeholder="To (e.g., Colombia)">
+                    <input type="date" id="opt-date" class="date-picker">
+                    <button class="btn btn-primary" onclick="optimizeRoutings()">Analyze Optimization Options</button>
+                </div>
+                <div id="optimization-results" class="results-grid" style="display: none;">
+                    <!-- Options injected here -->
+                </div>
+            </section>
+
+            <section id="tab-share-gps" class="dashboard-section">
+                <div class="section-header">
+                    <h1>Emergency Real-Time GPS Broadcast</h1>
+                    <p>Encrypts and securely packages live device coordinates into a tracking link payload.</p>
+                </div>
+                <div class="card max-width-card text-center" style="grid-column: 1 / -1;">
+                    <div id="share-map" class="map-render-window unique-share-map"></div>
+                    <div class="toggle-control-group">
+                        <label class="switch-container">
+                            <input type="checkbox" id="gps-toggle" onchange="toggleGpsBroadcast(this)">
+                            <span class="slider-switch"></span>
+                        </label>
+                        <span>Activate Global Encryption Tracking Broadcast Stream</span>
+                    </div>
+                    <div class="share-payload-box" id="link-payload-display" style="display: none;">
+                        <input type="text" id="generated-gps-link" readonly value="">
+                        <button class="btn btn-accent" onclick="copyLinkToClipboard()">Copy Encryption Link</button>
+            </section>
+
+            <section id="tab-daily-activity" class="dashboard-section">
+                <div class="section-header">
+                    <h1>📅 Administrator Hub & Business Analytics</h1>
+                    <p>Monitor user demand trends, track daily flight search patterns, analyze AI chatbot queries, and maintain system data performance.</p>
+                </div>
+
+                <div class="hero-stats" style="margin-bottom: 1.5rem;">
+                    <div class="stat-box">
+                        <h2 id="daily-stat-searches">0</h2>
+                        <span>Searches Today</span>
+                    </div>
+                    <div class="stat-box">
+                        <h2 id="daily-stat-chats">0</h2>
+                        <span>AI Queries Today</span>
+                    </div>
+                    <div class="stat-box">
+                        <h2 id="daily-stat-records">0</h2>
+                        <span>Total Saved Logs</span>
+                    </div>
+                    <div class="stat-box">
+                        <h2 style="color: var(--color-success)">100%</h2>
+                        <span>System Health</span>
+                    </div>
+                </div>
+
+                <div class="results-grid" style="margin-bottom: 1.5rem;">
+                    <div class="card">
+                        <h3>🔥 High-Demand Travel Routes</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Most searched routes analyzed to optimize pricing strategy & inventory.</p>
+                        <div id="top-routes-list" style="display: flex; flex-direction: column; gap: 0.6rem;">
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">Gathering route analytics...</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>🤖 AI Insights & Customer Queries</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Frequent topics asked by travelers to improve platform UX & features.</p>
+                        <div id="ai-topics-list" style="display: flex; flex-direction: column; gap: 0.6rem;">
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">Analyzing traveler queries...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card max-width-card" style="grid-column: 1 / -1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <h3 style="margin-bottom: 0.2rem;">📊 Live Daily Activity Audit Trail</h3>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">Real-time database stream maintaining user queries and system actions.</span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-accent btn-sm" onclick="exportDailyActivityCsv()">📥 Export CSV Data</button>
+                            <button class="btn btn-primary btn-sm" onclick="triggerDbMaintenance()">⚡ Run Maintenance</button>
+                            <button class="btn btn-danger btn-sm" onclick="clearDailyHistory()">🗑️ Clear Logs</button>
+                        </div>
+                    </div>
+                    <div id="daily-history-list" style="display: flex; flex-direction: column; gap: 0.8rem; max-height: 380px; overflow-y: auto; padding-right: 0.5rem;">
+                        <p style="color: var(--text-muted);">Loading live daily logs...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-settings" class="dashboard-section">
+                <div class="section-header">
+                    <h1>Configuration Control Panel</h1>
+                    <p>Fine-tune underlying backend settings, pricing weights, data targets, and synchronization cycles.</p>
+                </div>
+                <div class="card max-width-card" style="grid-column: 1 / -1; max-width: 800px;">
+                    <h3>User Profile Directives</h3>
+                    <div class="settings-row">
+                        <label>User Name Context String:</label>
+                        <input type="text" id="settings-username" value="Aero User" readonly class="disabled-input">
+                    </div>
+                    <hr class="divider">
+                    <h3>AI Operational Optimization Directives</h3>
+                    <div class="settings-row">
+                        <label>AI Forecasting Sensitivity Engine Logic Vector:</label>
+                        <select>
+                            <option selected>Conservative (Risk-Averse Analysis Model)</option>
+                            <option>Aggressive (Volatile Pattern Recognition Engine)</option>
+                        </select>
+                    </div>
+                    <hr class="divider">
+                    <h3>Systemic Refresh Parameters</h3>
+                    <div class="settings-row">
+                        <label>Data Pipeline Refresh Clock Frequency Rate:</label>
+                        <select id="sync-frequency">
+                            <option value="realtime">Real-Time Continuous Stream Mode</option>
+                            <option value="5m">5 Minute Intermittent Segment Batch Refresh</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="alert('System adjustments successfully updated locally.')" style="margin-top: 1rem;">Save Framework Rules</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

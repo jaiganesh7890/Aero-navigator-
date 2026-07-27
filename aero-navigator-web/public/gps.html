@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Live GPS Share</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>body,html{height:100%;margin:0}#map{height:100vh}</style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const token = location.pathname.split('/').pop();
+    const map = L.map('map').setView([13.0827,80.2707], 13);
+    const street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
+    const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
+    const terrain = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17 });
+    street.addTo(map);
+    L.control.layers({ "Street": street, "Satellite": satellite, "Terrain": terrain }).addTo(map);
+    let marker = L.marker([13.0827,80.2707]).addTo(map);
+    async function refresh() {
+      try {
+        const res = await fetch(`/api/gps/${token}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        marker.setLatLng([data.lat, data.lon]);
+        map.setView([data.lat, data.lon], map.getZoom());
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>
