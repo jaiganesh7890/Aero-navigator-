@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aero-Navigator — DAST Security Test Report</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background:#f1f5f9; color:#1e293b; }
+  .header { background: linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#0f172a 100%); color:#fff; padding:40px 48px; }
+  .header h1 { font-size:1.9rem; font-weight:800; letter-spacing:-0.02em; }
+  .header p  { margin-top:6px; color:#94a3b8; font-size:0.9rem; }
+  .badge     { display:inline-block; padding:3px 12px; border-radius:9999px; font-size:0.8rem; font-weight:700; margin-left:12px; vertical-align:middle; }
+  .body      { max-width:1400px; margin:0 auto; padding:32px 24px; }
+  .kpi-grid  { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:32px; }
+  .kpi-card  { background:#fff; border-radius:12px; padding:20px 22px; box-shadow:0 1px 3px rgba(0,0,0,.08); border-top:4px solid var(--accent); }
+  .kpi-card .label { font-size:0.75rem; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; font-weight:600; }
+  .kpi-card .value { font-size:2.1rem; font-weight:800; color:var(--accent); margin-top:6px; }
+  .section   { background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.08); margin-bottom:24px; overflow:hidden; }
+  .section-hd{ padding:18px 24px; border-bottom:1px solid #e2e8f0; font-weight:700; font-size:1rem; display:flex; align-items:center; gap:10px; }
+  table      { width:100%; border-collapse:collapse; }
+  thead th   { background:#0f172a; color:#fff; padding:11px 12px; font-size:0.78rem; font-weight:600; text-align:left; }
+  tr:hover   { background:#f8fafc !important; }
+  .cat-tag   { display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:600; background:#e2e8f0; color:#475569; }
+  .footer    { text-align:center; padding:24px; font-size:0.8rem; color:#94a3b8; }
+  @media (max-width:768px) { thead { display:none; } tr { display:block; margin-bottom:12px; } td { display:block; padding:6px 12px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>✈️ Aero-Navigator API
+    <span class="badge" style="background:#dc2626">
+      🔴 CRITICAL FINDINGS
+    </span>
+  </h1>
+  <p>DAST Security Test Report &nbsp;·&nbsp; Generated: 28/7/2026, 9:47:34 am &nbsp;·&nbsp; GitHub Actions CI</p>
+</div>
+
+<div class="body">
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--accent:#6366f1">
+      <div class="label">Tests Run</div>
+      <div class="value">46</div>
+    </div>
+    <div class="kpi-card" style="--accent:#22c55e">
+      <div class="label">Passed</div>
+      <div class="value">21</div>
+    </div>
+    <div class="kpi-card" style="--accent:#dc2626">
+      <div class="label">🔴 Critical</div>
+      <div class="value">1</div>
+    </div>
+    <div class="kpi-card" style="--accent:#ea580c">
+      <div class="label">🟠 High</div>
+      <div class="value">17</div>
+    </div>
+    <div class="kpi-card" style="--accent:#d97706">
+      <div class="label">🟡 Medium</div>
+      <div class="value">6</div>
+    </div>
+    <div class="kpi-card" style="--accent:#16a34a">
+      <div class="label">🟢 Low</div>
+      <div class="value">1</div>
+    </div>
+    <div class="kpi-card" style="--accent:#64748b">
+      <div class="label">Total Findings</div>
+      <div class="value">25</div>
+    </div>
+  </div>
+
+  <!-- Findings Table -->
+  <div class="section">
+    <div class="section-hd">
+      <span>🚨</span>
+      <span>Security Findings (25)</span>
+    </div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th><th>Endpoint</th><th>Severity</th>
+          <th>Status</th><th>Expected</th><th>Time</th><th>Finding Detail</th><th>Category</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/daily-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/401</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">6ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">UNAUTHENTICATED access to user-data endpoint returned 200 — no session enforcement</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT0_UNAUTH</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/daily-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">15ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: GET /api/user/daily-history returned 200 with no-token</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/daily-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">4ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: GET /api/user/daily-history returned 200 with empty-bearer</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/daily-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">4ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: GET /api/user/daily-history returned 200 with garbage-token</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/daily-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">4ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: GET /api/user/daily-history returned 200 with expired-sim</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/clear-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">206ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: POST /api/user/clear-history returned 200 with no-token</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/clear-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">3ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: POST /api/user/clear-history returned 200 with empty-bearer</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/clear-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">4ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: POST /api/user/clear-history returned 200 with garbage-token</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/clear-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">2ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: POST /api/user/clear-history returned 200 with expired-sim</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/alerts</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">201</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">61ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: POST /api/alerts returned 201 with no-token</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/alerts</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">201</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">24ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: POST /api/alerts returned 201 with empty-bearer</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/alerts</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">201</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">35ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: POST /api/alerts returned 201 with garbage-token</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/alerts</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">201</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401/403</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">41ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">AuthN bypass: POST /api/alerts returned 201 with expired-sim</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/daily-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">87ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">IDOR/AuthZ: Any caller can read another user's activity by supplying email in query param — no session check</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT2_AUTHZ</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fef2f2">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/user/clear-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#dc2626; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    CRITICAL
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">68ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">CRITICAL: Unauthenticated caller can delete another user's history by supplying victim email in body</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT2_AUTHZ</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fffbeb">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/gps/:token</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#d97706; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    MEDIUM
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">2ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">IDOR: GPS session data accessible with token (token entropy is only ~30-bit; Math.random-based)</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT3_IDOR</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fffbeb">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/gps/start</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#d97706; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    MEDIUM
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">0ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">GPS token uses Math.random() — low entropy, predictable. Sampled tokens: u9gh17gk, s271gg1f, cv930a5s</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT3_IDOR</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#f0fdf4">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/track/:trackId</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#16a34a; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    LOW
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">6ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Track session accessible without auth (same Math.random token entropy issue)</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT3_IDOR</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fffbeb">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/flights</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#d97706; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    MEDIUM
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">429 (rate-limit)</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">0ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No rate-limit header / 429 after 30 requests — DDoS amplification risk</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT5_RATE_LIMIT</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/login</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">429 (rate-limit)</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">0ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No rate-limit on /api/login after 15 rapid requests — credential stuffing risk</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT5_RATE_LIMIT</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">STATIC</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">server.js (static scan)</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">0</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">N/A</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">0ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Pattern [session-secret] found at: line 26 — value redacted</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT6_SECRETS</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fffbeb">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">STATIC</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">server.js (static scan)</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#d97706; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    MEDIUM
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">0</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">N/A</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">0ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Pattern [aviationstack-key] found at: line 212 — value redacted</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT6_SECRETS</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fffbeb">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">STATIC</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">server.js (static scan)</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#d97706; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    MEDIUM
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">0</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">N/A</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">0ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Pattern [smtp-credentials] found at: line 185, line 185, line 187, line 188, line 188, line 189, line 191, line 192, line 204, line 204 — value redacted</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT6_SECRETS</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fffbeb">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">STATIC</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">.env (static scan)</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#d97706; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    MEDIUM
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">0</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">N/A</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">0ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No .env file; secrets should be externalised from server.js into environment variables</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT6_SECRETS</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#fff7ed">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/alerts</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#ea580c; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    HIGH
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">201</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">63ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Unauthenticated caller can create price alerts with ANY recipient email — email-abuse / spam vector</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT1_AUTHN</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Passed Tests Table -->
+  <div class="section">
+    <div class="section-hd">
+      <span>✅</span>
+      <span>Passed Tests (21)</span>
+    </div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th><th>Endpoint</th><th>Result</th>
+          <th>Status</th><th>Expected</th><th>Time</th><th>Note</th><th>Category</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/flights</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">21ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Status 200 within expected range</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT0_UNAUTH</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/price-history</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">5ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Status 200 within expected range</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT0_UNAUTH</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/predict</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">6ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Status 200 within expected range</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT0_UNAUTH</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/optimize</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">16ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Status 200 within expected range</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT0_UNAUTH</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/session</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">401</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">2ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Status 401 within expected range</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT0_UNAUTH</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/sentiment</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">1513ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Status 200 within expected range</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT0_UNAUTH</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/weather</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">2005ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">Status 200 within expected range</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT0_UNAUTH</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/flights</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">3ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: ' OR '1'='1</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/flights</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">3ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: '; DROP TABLE users;</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/flights</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">164ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: " OR "1"="1</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/flights</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">250ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: 1 UNION SELECT * FRO</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/predict</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">5ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: ' OR '1'='1</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/predict</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">5ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: '; DROP TABLE users;</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/predict</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">7ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: " OR "1"="1</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/predict</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">3ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: 1 UNION SELECT * FRO</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/optimize</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">2ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: ' OR '1'='1</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/optimize</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">1ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: '; DROP TABLE users;</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/optimize</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">3ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: " OR "1"="1</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">GET</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/optimize</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200/400</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">2ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal for payload: 1 UNION SELECT * FRO</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/chat</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">407ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal in chat response</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+        <tr style="border-bottom:1px solid #e2e8f0; background:#ffffff">
+            <td style="padding:10px 12px; font-size:0.78rem; color:#475569; font-family:monospace">POST</td>
+            <td style="padding:10px 12px; font-size:0.78rem; font-family:monospace; word-break:break-all">/api/chat</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center">
+                <span style="background:#22c55e; color:#fff; padding:2px 8px; border-radius:9999px; font-size:0.72rem; font-weight:700">
+                    PASS
+                </span>
+            </td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:center; color:#64748b">200</td>
+            <td style="padding:10px 12px; font-size:0.78rem; text-align:right; color:#94a3b8">409ms</td>
+            <td style="padding:10px 12px; font-size:0.78rem; color:#334155">No injection signal in chat response</td>
+            <td style="padding:10px 12px; font-size:0.75rem; color:#94a3b8">CAT4_INJECTION</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Category Breakdown -->
+  <div class="section">
+    <div class="section-hd"><span>📊</span><span>Test Category Breakdown</span></div>
+    <div style="padding:20px 24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px">
+      
+          <div style="background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0">
+            <div style="font-size:0.75rem; font-weight:700; color:#475569; text-transform:uppercase">CAT0_UNAUTH</div>
+            <div style="margin-top:6px; font-size:0.85rem; color:#334155">8 tests · <span style="color:#dc2626;font-weight:700">1 finding</span></div>
+          </div>
+          <div style="background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0">
+            <div style="font-size:0.75rem; font-weight:700; color:#475569; text-transform:uppercase">CAT1_AUTHN</div>
+            <div style="margin-top:6px; font-size:0.85rem; color:#334155">13 tests · <span style="color:#dc2626;font-weight:700">13 findings</span></div>
+          </div>
+          <div style="background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0">
+            <div style="font-size:0.75rem; font-weight:700; color:#475569; text-transform:uppercase">CAT2_AUTHZ</div>
+            <div style="margin-top:6px; font-size:0.85rem; color:#334155">2 tests · <span style="color:#dc2626;font-weight:700">2 findings</span></div>
+          </div>
+          <div style="background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0">
+            <div style="font-size:0.75rem; font-weight:700; color:#475569; text-transform:uppercase">CAT3_IDOR</div>
+            <div style="margin-top:6px; font-size:0.85rem; color:#334155">3 tests · <span style="color:#dc2626;font-weight:700">3 findings</span></div>
+          </div>
+          <div style="background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0">
+            <div style="font-size:0.75rem; font-weight:700; color:#475569; text-transform:uppercase">CAT4_INJECTION</div>
+            <div style="margin-top:6px; font-size:0.85rem; color:#334155">14 tests · <span style="color:#16a34a;font-weight:700">0 findings</span></div>
+          </div>
+          <div style="background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0">
+            <div style="font-size:0.75rem; font-weight:700; color:#475569; text-transform:uppercase">CAT5_RATE_LIMIT</div>
+            <div style="margin-top:6px; font-size:0.85rem; color:#334155">2 tests · <span style="color:#dc2626;font-weight:700">2 findings</span></div>
+          </div>
+          <div style="background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0">
+            <div style="font-size:0.75rem; font-weight:700; color:#475569; text-transform:uppercase">CAT6_SECRETS</div>
+            <div style="margin-top:6px; font-size:0.85rem; color:#334155">4 tests · <span style="color:#dc2626;font-weight:700">4 findings</span></div>
+          </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Aero-Navigator DAST Suite · GitHub Actions Run · 28/7/2026, 9:47:34 am
+</div>
+
+</body>
+</html>
