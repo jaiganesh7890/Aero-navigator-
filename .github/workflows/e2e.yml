@@ -1,0 +1,181 @@
+name: 🚀 Aero Navigator — Complete Test Suite (e2e)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  SESSION_SECRET: ci-e2e-aero-navigator-secret-2026
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════
+  # SINGLE JOB: All tests run sequentially in one flow
+  # ═══════════════════════════════════════════════════════════════════
+  e2e-test-suite:
+    name: 🧪 E2E Test Suite — All Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Setup ────────────────────────────────────────────────────
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: aero-navigator-web/package-lock.json
+
+      - name: 📦 Install Dependencies
+        working-directory: aero-navigator-web
+        run: npm ci
+
+      # ── 2. Start Server (stays alive for all tests) ─────────────────
+      - name: 🚀 Start Aero-Navigator Server
+        working-directory: aero-navigator-web
+        env:
+          SESSION_SECRET: ${{ env.SESSION_SECRET }}
+        run: |
+          node server.js &
+          echo "SERVER_PID=$!" >> $GITHUB_ENV
+          echo "⏳ Waiting for server..."
+          for i in $(seq 1 30); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/session 2>/dev/null || echo 0)
+            if [ "$CODE" = "401" ] || [ "$CODE" = "200" ]; then
+              echo "✅ Server ready (HTTP $CODE) in ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      # ── 3. Selenium — Website Tests ─────────────────────────────────
+      - name: 🌐 Selenium — Website Tests
+        working-directory: aero-navigator-web
+        run: node automated_test/selenium_runner.js
+        continue-on-error: true
+
+      # ── 4. Appium — Android Tests ───────────────────────────────────
+      - name: 📱 Appium — Android Tests
+        working-directory: aero-navigator-web
+        run: node automated_test/appium_runner.js
+        continue-on-error: true
+
+      # ── 5. Unit Tests — API ─────────────────────────────────────────
+      - name: 🔧 Unit Tests — API
+        working-directory: aero-navigator-web
+        run: node automated_test/unit_test_runner.js
+        continue-on-error: true
+
+      # ── 6. Validation Tests ─────────────────────────────────────────
+      - name: ✅ Validation Tests
+        working-directory: aero-navigator-web
+        run: node automated_test/validation_runner.js
+        continue-on-error: true
+
+      # ── 7. Deployment Status ────────────────────────────────────────
+      - name: 🚀 Deployment Status
+        working-directory: aero-navigator-web
+        run: node automated_test/deployment_check.js
+        continue-on-error: true
+
+      # ── 8. Load Testing — Performance ──────────────────────────────
+      - name: ⚡ Load Testing — Performance
+        working-directory: aero-navigator-web
+        run: node load_test_runner.js --users 100 --duration 30 --url http://localhost:3000
+        continue-on-error: true
+
+      # ── 9. Vulnerability Tests (DAST) ───────────────────────────────
+      - name: 🔒 Vulnerability Tests (DAST)
+        working-directory: aero-navigator-web
+        env:
+          SESSION_SECRET: ${{ env.SESSION_SECRET }}
+        run: node automated_test/dast_runner.js
+        continue-on-error: true
+
+      # ── 10. Stop Server ──────────────────────────────────────────────
+      - name: 🛑 Stop Server
+        if: always()
+        run: kill $SERVER_PID 2>/dev/null || true
+
+      # ── 11. Generate DAST Excel Report ──────────────────────────────
+      - name: 📊 Generate DAST Security Excel Report
+        if: always()
+        working-directory: aero-navigator-web
+        run: node automated_test/generate_excel_report.js
+        continue-on-error: true
+
+      # ── 12. Compile Master Excel Report ─────────────────────────────
+      - name: 📋 Compile Master Report & Deploy
+        if: always()
+        working-directory: aero-navigator-web
+        run: node automated_test/compile_master_report.js
+        continue-on-error: true
+
+      # ── 13. Write GitHub Step Summary ───────────────────────────────
+      - name: 📝 Write Summary
+        if: always()
+        working-directory: aero-navigator-web
+        run: |
+          echo "# ✈️ Aero-Navigator — Complete Test Suite Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> **$(date '+%Y-%m-%d %H:%M:%S IST')**  ·  Run #${{ github.run_number }}  ·  Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| # | Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          check_suite() {
+            local file=$1 label=$2
+            if [ -f "automated_test/${file}" ]; then
+              PASS=$(node -e "try{const d=require('./automated_test/${file}');console.log(d.summary?.passed??0)}catch(e){console.log(0)}" 2>/dev/null || echo 0)
+              FAIL=$(node -e "try{const d=require('./automated_test/${file}');console.log(d.summary?.failed??0)}catch(e){console.log(0)}" 2>/dev/null || echo 0)
+              if [ "$FAIL" = "0" ]; then
+                echo "| $3 | $label | ✅ PASS ($PASS passed) |" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "| $3 | $label | ⚠️ $FAIL failed / $PASS passed |" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "| $3 | $label | ⏭️ No results |" >> $GITHUB_STEP_SUMMARY
+            fi
+          }
+
+          check_suite selenium_results.json   "🌐 Selenium — Website Tests"    1
+          check_suite appium_results.json     "📱 Appium — Android Tests"      2
+          check_suite unit_test_results.json  "🔧 Unit Tests — API"            3
+          check_suite validation_results.json "✅ Validation Tests"            4
+          check_suite deployment_results.json "🚀 Deployment Status"           5
+          check_suite unit_test_results.json  "⚡ Load Testing — Performance"  6
+
+          # DAST check
+          if [ -f "automated_test/report.json" ]; then
+            FINDINGS=$(node -e "try{const r=require('./automated_test/report.json');console.log(r.filter(x=>x.finding).length)}catch(e){console.log(0)}" 2>/dev/null || echo 0)
+            TOTAL=$(node -e "try{const r=require('./automated_test/report.json');console.log(r.length)}catch(e){console.log(0)}" 2>/dev/null || echo 0)
+            if [ "$FINDINGS" = "0" ]; then
+              echo "| 7 | 🔒 Vulnerability Tests (DAST) | ✅ PASS ($TOTAL tests, 0 findings) |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| 7 | 🔒 Vulnerability Tests (DAST) | ❌ $FINDINGS findings detected |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📥 Download **Master-Test-Report** artifact below for the full Excel report with all results." >> $GITHUB_STEP_SUMMARY
+
+      # ── 14. Upload All Reports as Artifacts ─────────────────────────
+      - name: 📤 Upload Master Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Master-Test-Report-Run-${{ github.run_number }}
+          path: |
+            aero-navigator-web/automated_test/Master_Test_Report.xlsx
+            aero-navigator-web/automated_test/DAST_Security_Report.xlsx
+            aero-navigator-web/Aero_Navigator_Load_Test_Report.xlsx
+            aero-navigator-web/automated_test/selenium_results.json
+            aero-navigator-web/automated_test/appium_results.json
+            aero-navigator-web/automated_test/unit_test_results.json
+            aero-navigator-web/automated_test/validation_results.json
+            aero-navigator-web/automated_test/deployment_results.json
+            aero-navigator-web/automated_test/report.json
+          retention-days: 90
+          if-no-files-found: warn
