@@ -1,0 +1,110 @@
+name: ⚡ Load Test — Aero-Navigator API (100 VUs / 60s)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      users:
+        description: 'Number of Virtual Users'
+        required: false
+        default: '100'
+      duration:
+        description: 'Test duration in seconds'
+        required: false
+        default: '60'
+
+env:
+  SESSION_SECRET: ci-load-test-session-secret-aero-2026
+
+jobs:
+  load-test:
+    name: Baseline Load Test (100 VUs / 60s)
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js ───────────────────────────────────────────────────────────
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: aero-navigator-web/package-lock.json
+
+      # ── 3. Install dependencies ───────────────────────────────────────────────
+      - name: 📦 Install Dependencies
+        working-directory: aero-navigator-web
+        run: npm ci
+
+      # ── 4. Start server ───────────────────────────────────────────────────────
+      - name: 🚀 Start Aero-Navigator Server
+        working-directory: aero-navigator-web
+        env:
+          SESSION_SECRET: ${{ env.SESSION_SECRET }}
+          PORT: 3000
+        run: |
+          node server.js &
+          echo "SERVER_PID=$!" >> $GITHUB_ENV
+          echo "⏳ Waiting for server to be ready..."
+          for i in $(seq 1 30); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/flights?from=MAA\&to=LHR 2>/dev/null || echo "0")
+            if [ "$STATUS" = "200" ] || [ "$STATUS" = "429" ]; then
+              echo "✅ Server is ready (HTTP $STATUS) after ${i}s"
+              break
+            fi
+            echo "  Attempt $i/30: HTTP $STATUS — retrying..."
+            sleep 1
+          done
+
+      # ── 5. Run Load Test ──────────────────────────────────────────────────────
+      - name: ⚡ Run Baseline Load Test (100 VUs / 60s)
+        working-directory: aero-navigator-web
+        run: |
+          USERS=${{ github.event.inputs.users || '100' }}
+          DURATION=${{ github.event.inputs.duration || '60' }}
+          echo "🚀 Starting load test: ${USERS} VUs for ${DURATION}s"
+          node load_test_runner.js --users $USERS --duration $DURATION --url http://localhost:3000
+
+      # ── 6. Write Step Summary ─────────────────────────────────────────────────
+      - name: 📋 Write Load Test Summary
+        if: always()
+        working-directory: aero-navigator-web
+        run: |
+          echo "# ⚡ Aero-Navigator Load Test Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> **$(date)**  ·  GitHub Actions CI  ·  100 Virtual Users / 60 Seconds" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f "Aero_Navigator_Load_Test_Report.xlsx" ]; then
+            echo "✅ **Excel report generated successfully**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Virtual Users | 100 VUs |" >> $GITHUB_STEP_SUMMARY
+            echo "| Duration | 60 seconds |" >> $GITHUB_STEP_SUMMARY
+            echo "| Target Endpoints | 5 API routes |" >> $GITHUB_STEP_SUMMARY
+            echo "| Report Format | Excel (.xlsx) |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📥 Download the **\`Load-Test-Report\`** artifact below to view the full Excel report." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Excel report was not generated — check the logs above." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # ── 7. Upload Excel Report as Artifact ────────────────────────────────────
+      - name: 📤 Upload Load Test Excel Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Load-Test-Report-Run-${{ github.run_number }}
+          path: |
+            aero-navigator-web/Aero_Navigator_Load_Test_Report.xlsx
+          retention-days: 90
+          if-no-files-found: warn
+
+      # ── 8. Stop server ────────────────────────────────────────────────────────
+      - name: 🛑 Stop Server
+        if: always()
+        run: kill $SERVER_PID 2>/dev/null || true
