@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const session = require('express-session');
 const path = require('path');
 const fetch = require('node-fetch');
+const crypto = require('crypto');
 let tf = null;
 let tfAvailable = false;
 try {
@@ -22,8 +23,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── Rate Limiting ─────────────────────────────────────────────────────────────
+let rateLimit = null;
+try { rateLimit = require('express-rate-limit'); } catch(e) { console.warn('express-rate-limit not installed; rate limiting disabled.'); }
+const loginLimiter = rateLimit ? rateLimit({ windowMs: 15000, max: 5,  standardHeaders: true, legacyHeaders: false, message: { error: 'Too many login attempts. Please wait 15 s.' } }) : (req, res, next) => next();
+const apiLimiter   = rateLimit ? rateLimit({ windowMs: 15000, max: 20, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many requests. Please slow down.' }   }) : (req, res, next) => next();
+
+// ── Auth Middleware ───────────────────────────────────────────────────────────
+function requireAuth(req, res, next) {
+    if (!req.session || !req.session.userId) {
+        return res.status(401).json({ error: 'Authentication required. Please sign in.' });
+    }
+    next();
+}
+
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+if (!process.env.SESSION_SECRET) console.warn('⚠️  SESSION_SECRET not set — sessions will reset on restart. Set SESSION_SECRET env var.');
+
 app.use(session({
-    secret: 'aero_navigator_secure_encryption_key_matrix_2026',
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 1000 * 60 * 60 * 24 }
@@ -47,7 +65,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 const gpsSessions = {};
 
 function generateToken() {
-    return Math.random().toString(36).substring(2, 10);
+    return crypto.randomBytes(16).toString('hex'); // 128-bit entropy
 }
 
 // Start a GPS broadcast session
@@ -205,7 +223,7 @@ function sendAlertEmail(to, subject, text) {
 }
 
 // API: return multiple simulated flights matching route
-app.get('/api/flights', (req, res) => {
+app.get('/api/flights', apiLimiter, (req, res) => {
     const from = (req.query.from || 'MAA').toUpperCase();
     const to = (req.query.to || 'LHR').toUpperCase();
     // If AviationStack key is configured, try to fetch real flight data
@@ -570,7 +588,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', loginLimiter, (req, res) => {
     const { email } = req.body || {};
     if (!email || !isValidEmail(email)) return res.status(400).send('Please enter a valid email address.');
 
@@ -621,9 +639,9 @@ app.post('/api/user/log-activity', (req, res) => {
     res.json({ ok: true });
 });
 
-// API: get daily user activity history & summaries strictly for signed-in email
-app.get('/api/user/daily-history', (req, res) => {
-    const userEmail = (req.query.email || req.session.userEmail || 'guest@aeronav.io').toLowerCase().trim();
+// API: get daily user activity history — requires active session
+app.get('/api/user/daily-history', requireAuth, (req, res) => {
+    const userEmail = (req.session.userEmail || 'guest@aeronav.io').toLowerCase().trim(); // only session — no email param
 
     db.all(`SELECT * FROM user_daily_activity WHERE LOWER(user_email) = ? ORDER BY id DESC LIMIT 50`, [userEmail], (err, activities) => {
         if (err) return res.status(500).json({ error: 'DB read error' });
@@ -641,9 +659,9 @@ app.get('/api/user/daily-history', (req, res) => {
     });
 });
 
-// API: clear daily activity history strictly for signed-in email
-app.post('/api/user/clear-history', (req, res) => {
-    const userEmail = (req.body.email || req.session.userEmail || 'guest@aeronav.io').toLowerCase().trim();
+// API: clear daily activity history — requires active session (ignores any email in body)
+app.post('/api/user/clear-history', requireAuth, (req, res) => {
+    const userEmail = (req.session.userEmail || 'guest@aeronav.io').toLowerCase().trim(); // only session — body email ignored
     db.run(`DELETE FROM user_daily_activity WHERE LOWER(user_email) = ?`, [userEmail], (err) => {
         if (err) return res.status(500).json({ error: 'DB delete error' });
         db.run(`DELETE FROM user_daily_summaries WHERE LOWER(user_email) = ?`, [userEmail], () => {});
@@ -651,7 +669,7 @@ app.post('/api/user/clear-history', (req, res) => {
     });
 });
 
-app.post('/api/alerts', async (req, res) => {
+app.post('/api/alerts', requireAuth, async (req, res) => {
     // allow alerts from logged-in users or provide an email in the body
     const { threshold, email, from, to } = req.body;
     const userId = req.session.userId || null;
@@ -904,7 +922,7 @@ app.get('/api/weather', async (req, res) => {
 const trackSessions = {};
 
 function makeTrackId() {
-    return Math.random().toString(36).substring(2, 10);
+    return crypto.randomBytes(16).toString('hex'); // 128-bit entropy
 }
 
 // Start a tracking session for a specific flight object (from /api/flights)

@@ -5,7 +5,10 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:          # allows manual trigger from Actions tab
+  workflow_dispatch:
+
+env:
+  SESSION_SECRET: ci-test-session-secret-aero-2026-github-actions
 
 jobs:
   dast-security-test:
@@ -13,11 +16,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Checkout code ──────────────────────────────────────────────────
+      # ── 1. Checkout ─────────────────────────────────────────────────────────
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      # ── 2. Setup Node.js ──────────────────────────────────────────────────
+      # ── 2. Node.js setup ─────────────────────────────────────────────────────
       - name: 🟢 Setup Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -25,79 +28,90 @@ jobs:
           cache: 'npm'
           cache-dependency-path: aero-navigator-web/package-lock.json
 
-      # ── 3. Install server dependencies ────────────────────────────────────
-      - name: 📦 Install Server Dependencies
+      # ── 3. Install server + test dependencies ────────────────────────────────
+      - name: 📦 Install Dependencies
         working-directory: aero-navigator-web
-        run: npm install
+        run: npm ci
 
-      # ── 4. Install DAST test dependencies (none needed — pure Node builtins) ─
-      - name: 📦 Install ExcelJS for Report Generation
-        working-directory: aero-navigator-web
-        run: |
-          # ExcelJS already in selenium-web-tests — install standalone for DAST report
-          npm install --save-dev exceljs
-
-      # ── 5. Start the server in the background ─────────────────────────────
+      # ── 4. Start server in background ────────────────────────────────────────
       - name: 🚀 Start Aero-Navigator Server
         working-directory: aero-navigator-web
+        env:
+          SESSION_SECRET: ${{ env.SESSION_SECRET }}
+          PORT: 3000
         run: |
           node server.js &
           echo "SERVER_PID=$!" >> $GITHUB_ENV
-          # Wait up to 20s for the server to be ready
-          for i in $(seq 1 20); do
-            curl -sf http://localhost:3000/api/session > /dev/null 2>&1 && echo "✅ Server ready" && break
-            echo "⏳ Waiting for server... ($i/20)"
+          echo "⏳ Waiting for server to be ready..."
+          for i in $(seq 1 25); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/session 2>/dev/null || echo "0")
+            if [ "$STATUS" = "401" ] || [ "$STATUS" = "200" ]; then
+              echo "✅ Server ready (HTTP $STATUS) after ${i}s"
+              break
+            fi
+            echo "  Attempt $i/25: HTTP $STATUS — waiting..."
             sleep 1
           done
 
-      # ── 6. Run DAST Test Suite ────────────────────────────────────────────
+      # ── 5. Run DAST Test Suite ────────────────────────────────────────────────
       - name: 🛡️ Run DAST Security Tests
         working-directory: aero-navigator-web
-        run: |
-          node automated_test/dast_runner.js
-        continue-on-error: true   # keep running even if findings exist
-
-      # ── 7. Generate HTML Report ───────────────────────────────────────────
-      - name: 📊 Generate HTML Report
-        working-directory: aero-navigator-web
-        run: node automated_test/generate_html_report.js
+        env:
+          SESSION_SECRET: ${{ env.SESSION_SECRET }}
+        run: node automated_test/dast_runner.js
         continue-on-error: true
 
-      # ── 8. Stop the server ────────────────────────────────────────────────
-      - name: 🛑 Stop Server
-        if: always()
-        run: kill $SERVER_PID 2>/dev/null || true
+      # ── 6. Generate Excel Report ──────────────────────────────────────────────
+      - name: 📊 Generate Excel Security Report
+        working-directory: aero-navigator-web
+        env:
+          SESSION_SECRET: ${{ env.SESSION_SECRET }}
+        run: node automated_test/generate_excel_report.js
+        continue-on-error: true
 
-      # ── 9. Upload all artifacts ───────────────────────────────────────────
+      # ── 7. Print Markdown Summary to Actions UI ───────────────────────────────
+      - name: 📋 Write Step Summary
+        working-directory: aero-navigator-web
+        env:
+          SESSION_SECRET: ${{ env.SESSION_SECRET }}
+        run: node automated_test/print_summary.js >> $GITHUB_STEP_SUMMARY
+        continue-on-error: true
+
+      # ── 8. Upload ALL report artifacts ────────────────────────────────────────
       - name: 📤 Upload DAST Report Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dast-security-report-${{ github.run_number }}
+          name: DAST-Security-Report-Run-${{ github.run_number }}
           path: |
+            aero-navigator-web/automated_test/DAST_Security_Report.xlsx
             aero-navigator-web/automated_test/report.json
-            aero-navigator-web/automated_test/dast_report.html
             aero-navigator-web/automated_test/savepoint.json
-          retention-days: 30
+          retention-days: 90
 
-      # ── 10. Print summary to Actions log ─────────────────────────────────
-      - name: 📋 Print Summary to GitHub Step Summary
+      # ── 9. Stop server ────────────────────────────────────────────────────────
+      - name: 🛑 Stop Server
         if: always()
-        working-directory: aero-navigator-web
-        run: node automated_test/print_summary.js >> $GITHUB_STEP_SUMMARY
-        continue-on-error: true
+        run: kill $SERVER_PID 2>/dev/null || true
 
-      # ── 11. Fail the job if CRITICAL findings exist ───────────────────────
+      # ── 10. Fail CI if CRITICAL findings exist ────────────────────────────────
       - name: ❌ Fail on CRITICAL Findings
         working-directory: aero-navigator-web
         run: |
           CRITICAL=$(node -e "
             const r = require('./automated_test/report.json');
-            const c = r.filter(x => x.finding && x.severity === 'CRITICAL').length;
-            console.log(c);
-          ")
-          echo "Critical findings: $CRITICAL"
+            console.log(r.filter(x => x.finding && x.severity === 'CRITICAL').length);
+          " 2>/dev/null || echo "0")
+          HIGH=$(node -e "
+            const r = require('./automated_test/report.json');
+            console.log(r.filter(x => x.finding && x.severity === 'HIGH').length);
+          " 2>/dev/null || echo "0")
+          echo "::notice::🔴 CRITICAL: $CRITICAL  🟠 HIGH: $HIGH"
           if [ "$CRITICAL" -gt "0" ]; then
-            echo "::error::🔴 $CRITICAL CRITICAL security finding(s) detected. Review the DAST report artifact."
+            echo "::error::🔴 $CRITICAL CRITICAL finding(s) — review the DAST Excel Report artifact."
             exit 1
           fi
+          if [ "$HIGH" -gt "0" ]; then
+            echo "::warning::🟠 $HIGH HIGH finding(s) — review the DAST Excel Report artifact."
+          fi
+          echo "✅ No CRITICAL findings. Pipeline passed."

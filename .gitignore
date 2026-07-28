@@ -5,3 +5,6 @@ node_modules/
 *.tmp
 ~$*
 ~$*.xlsx
+.env
+*.env.local
+aero-navigator-web/automated_test/DAST_Security_Report.xlsx
