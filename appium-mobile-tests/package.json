@@ -1,0 +1,13 @@
+{
+  "name": "appium-mobile-tests",
+  "version": "1.0.0",
+  "description": "Appium Mobile End-to-End Automated Testing Suite for Android in Node.js with Excel Analysis Reporting",
+  "main": "runner.js",
+  "scripts": {
+    "test": "node runner.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "webdriverio": "^8.46.0"
+  }
+}

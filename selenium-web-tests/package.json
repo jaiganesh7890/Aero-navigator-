@@ -1,0 +1,14 @@
+{
+  "name": "selenium-web-tests",
+  "version": "1.0.0",
+  "description": "Selenium Web End-to-End Automated Testing Suite with Excel Analysis Reporting",
+  "main": "runner.js",
+  "scripts": {
+    "test": "node runner.js"
+  },
+  "dependencies": {
+    "chromedriver": "^123.0.0",
+    "exceljs": "^4.4.0",
+    "selenium-webdriver": "^4.46.0"
+  }
+}
